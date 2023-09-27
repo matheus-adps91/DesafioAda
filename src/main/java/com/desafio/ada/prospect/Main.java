@@ -1,4 +1,4 @@
-package com.ada.tech;
+package com.desafio.ada.prospect;
 
 public class Main {
     public static void main(String[] args) {
