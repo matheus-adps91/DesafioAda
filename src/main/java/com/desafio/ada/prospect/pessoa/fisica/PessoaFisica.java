@@ -3,16 +3,10 @@ package com.desafio.ada.prospect.pessoa.fisica;
 import com.desafio.ada.prospect.pessoa.Pessoa;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.UUID;
 
-@NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
 @Entity
 public class PessoaFisica extends Pessoa {
 
@@ -21,6 +15,8 @@ public class PessoaFisica extends Pessoa {
     @Column(name = "id", nullable = false)
     private Long id;
     private UUID uuid;
+
+    public PessoaFisica() { }
 
     public void setId(Long id) {
         this.id = id;
