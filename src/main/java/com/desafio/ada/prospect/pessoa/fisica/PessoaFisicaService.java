@@ -1,10 +1,12 @@
 package com.desafio.ada.prospect.pessoa.fisica;
 
+import com.desafio.ada.prospect.exceptions.RecursoDuplicadoException;
 import com.desafio.ada.prospect.exceptions.RecursoNaoEncontradoException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,6 +22,11 @@ public class PessoaFisicaService {
 
     public PessoaFisica cadastrarPessoa(PessoaFisicaDto pessoaFisicaDto){
         final PessoaFisica pessoaFisica = this.converterParaEntidade(pessoaFisicaDto);
+        final Optional<PessoaFisica> optPessoaFisica = this.pessoaFisicaRepository.findByUuid(pessoaFisica.getUuid());
+        if (optPessoaFisica.isPresent()) {
+            final String msgErro = String.format("Não é possível criar o recurso '%s' pois ela já existe", pessoaFisica.getUuid());
+            throw new RecursoDuplicadoException(msgErro);
+        }
         final PessoaFisica pessoaSalva = pessoaFisicaRepository.save(pessoaFisica);
         return pessoaSalva;
     }
@@ -31,7 +38,11 @@ public class PessoaFisicaService {
 
     public PessoaFisica obterPessoaFisicaPorId(UUID uuid) {
         final PessoaFisica pessoaFisica = pessoaFisicaRepository.findByUuid(uuid)
-                .orElseThrow( () -> new RecursoNaoEncontradoException("Não foi possível identificar a pesssoa física pelo id :" +uuid));
+            .orElseThrow( () -> {
+                    final String msgErro = String.format("Não foi possível identificar a pesssoa física pelo id '%s'", uuid);
+                    return new RecursoNaoEncontradoException(msgErro);
+                }
+            );
         return pessoaFisica;
     }
 
