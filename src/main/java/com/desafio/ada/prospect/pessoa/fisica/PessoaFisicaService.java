@@ -1,10 +1,10 @@
 package com.desafio.ada.prospect.pessoa.fisica;
 
+import com.desafio.ada.prospect.exceptions.RecursoNaoEncontradoException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,8 +30,8 @@ public class PessoaFisicaService {
     }
 
     public PessoaFisica obterPessoaFisicaPorId(UUID uuid) {
-        final Optional<PessoaFisica> oPessoaFisica = pessoaFisicaRepository.findByUuid(uuid);
-        final PessoaFisica pessoaFisica = oPessoaFisica.get();
+        final PessoaFisica pessoaFisica = pessoaFisicaRepository.findByUuid(uuid)
+                .orElseThrow( () -> new RecursoNaoEncontradoException("Não foi possível identificar a pesssoa física pelo id :" +uuid));
         return pessoaFisica;
     }
 
