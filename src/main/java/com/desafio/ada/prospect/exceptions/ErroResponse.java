@@ -12,8 +12,7 @@ public class ErroResponse {
     private List<String> mensagensErro;
     private LocalDateTime dataHoraFalha;
 
-    public ErroResponse() {
-    }
+    public ErroResponse() { }
 
     public String getNomeClasse() {
         return nomeClasse;
