@@ -17,9 +17,9 @@ import java.util.List;
 @ControllerAdvice
 public class RestControllerAdvice extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(value = {RecursoNaoEncontradoException.class})
+    @ExceptionHandler({RecursoDuplicadoException.class, RecursoNaoEncontradoException.class})
     public ResponseEntity<ErroResponse> handleMethodArgumentNotValid(
-            RecursoNaoEncontradoException ex)
+            Exception ex)
     {
         final ErroResponse erroResponse = new ErroResponse();
         erroResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
