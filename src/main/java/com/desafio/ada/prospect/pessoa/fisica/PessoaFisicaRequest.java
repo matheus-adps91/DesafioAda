@@ -20,7 +20,8 @@ public class PessoaFisicaRequest {
     private String codigoCategoria;
     @Size(max = 50, message = "Nome deve conter no máximo 50 caracteres")
     private String nome;
-    @Email(regexp = "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$")
+    @Email(regexp = "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$",
+            message = "Formato de email inválido")
     private String email;
 
     public String getCodigoCategoria() {

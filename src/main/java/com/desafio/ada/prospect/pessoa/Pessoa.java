@@ -5,13 +5,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+
 @AllArgsConstructor
 @MappedSuperclass
 public abstract class Pessoa {
@@ -21,6 +16,9 @@ public abstract class Pessoa {
     private MerchantCategory merchantCategory;
     private String nome;
     private String email;
+
+    public Pessoa() {
+    }
 
     public String getCpf() {
         return cpf;
