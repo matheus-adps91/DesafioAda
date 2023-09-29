@@ -3,6 +3,7 @@ package com.desafio.ada.prospect.pessoa.fisica;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 public class PessoaFisicaRequest {
 
     private UUID uuid;
-    @Size(max = 11, min = 11, message = "CPF deve conter 11 caracteres")
+    @CPF(message = "CPF inválido")
     private String cpf;
     @Size(max = 4, min = 4, message = "Codigo da categoria de mercado deve conter 4 caracteres")
     private String codigoCategoria;
