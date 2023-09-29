@@ -1,4 +1,4 @@
-package com.desafio.ada.prospect;
+package com.desafio.ada.prospect.pessoa.fisica;
 
 import com.desafio.ada.prospect.exceptions.RecursoDuplicadoException;
 import com.desafio.ada.prospect.exceptions.RecursoNaoEncontradoException;
