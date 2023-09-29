@@ -4,11 +4,11 @@ public class Fila {
 
     private static Fila INSTANCIA;
     private static class No {
-        private Object cliente;
+        private Object pessoa;
         private No proximo;
 
         public No(Object cliente) {
-            this.cliente = cliente;
+            this.pessoa = cliente;
         }
     }
 
@@ -26,8 +26,8 @@ public class Fila {
         return  inicio == null;
     }
 
-    public void adicionar(Object cliente) {
-        No no = new No(cliente);
+    public void adicionar(Object pessoa) {
+        No no = new No(pessoa);
         if (fim != null) {
             fim.proximo = no;
         }
@@ -38,8 +38,8 @@ public class Fila {
     }
 
     public Object remover() {
-        Object cliente = inicio.cliente;
-        inicio.proximo = inicio.proximo;
+        Object cliente = inicio.pessoa;
+        inicio = inicio.proximo;
         if (inicio == null) {
             fim = null;
         }
