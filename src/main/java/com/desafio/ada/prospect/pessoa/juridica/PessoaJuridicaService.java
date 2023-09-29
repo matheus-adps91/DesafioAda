@@ -2,6 +2,7 @@ package com.desafio.ada.prospect.pessoa.juridica;
 
 import com.desafio.ada.prospect.exceptions.RecursoDuplicadoException;
 import com.desafio.ada.prospect.exceptions.RecursoNaoEncontradoException;
+import com.desafio.ada.prospect.fila.Fila;
 import com.desafio.ada.prospect.utilitarios.Constantes;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class PessoaJuridicaService {
             throw new RecursoDuplicadoException(msgErro);
         }
         final PessoaJuridica pessoaSalva = pessoaJuridicaRepository.save(pessoaJuridica);
+        enfileirar(pessoaSalva);
         return pessoaSalva;
     }
 
@@ -59,6 +61,7 @@ public class PessoaJuridicaService {
         novaPessoaJuridica.setEmail(pessoaJuridicaDto.getEmail());
         novaPessoaJuridica.setMerchantCategory(pessoaJuridicaDto.getMerchantCategory());
         final PessoaJuridica novaPessoaJuridicaSalva = pessoaJuridicaRepository.saveAndFlush(novaPessoaJuridica);
+        enfileirar(novaPessoaJuridicaSalva);
         return novaPessoaJuridicaSalva;
     }
 
@@ -69,5 +72,10 @@ public class PessoaJuridicaService {
 
     private PessoaJuridica converterParaEntidade(PessoaJuridicaDto pessoaJuridicaDto) {
         return this.mapper.map(pessoaJuridicaDto, PessoaJuridica.class);
+    }
+
+    private static void enfileirar(PessoaJuridica pessoaSalva) {
+        Fila fila = Fila.obterInstancia();
+        fila.adicionar(pessoaSalva);
     }
 }
