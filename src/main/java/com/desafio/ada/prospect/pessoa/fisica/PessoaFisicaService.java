@@ -2,6 +2,7 @@ package com.desafio.ada.prospect.pessoa.fisica;
 
 import com.desafio.ada.prospect.exceptions.RecursoDuplicadoException;
 import com.desafio.ada.prospect.exceptions.RecursoNaoEncontradoException;
+import com.desafio.ada.prospect.fila.Fila;
 import com.desafio.ada.prospect.utilitarios.Constantes;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,10 @@ public class PessoaFisicaService {
             throw new RecursoDuplicadoException(msgErro);
         }
         final PessoaFisica pessoaSalva = pessoaFisicaRepository.save(pessoaFisica);
+        enfileirar(pessoaSalva);
         return pessoaSalva;
     }
+
 
     public List<PessoaFisica> listarPessoasFisicas() {
         final List<PessoaFisica> pessoasFisicas = pessoaFisicaRepository.findAll();
@@ -58,6 +61,7 @@ public class PessoaFisicaService {
         novaPessoaFisica.setNome(pessoaFisicaDto.getNome());
         novaPessoaFisica.setMerchantCategory(pessoaFisica.getMerchantCategory());
         final PessoaFisica novaPessoaFisicaSalva = pessoaFisicaRepository.saveAndFlush(novaPessoaFisica);
+        enfileirar(novaPessoaFisicaSalva);
         return novaPessoaFisicaSalva;
     }
 
@@ -70,4 +74,8 @@ public class PessoaFisicaService {
         return this.mapper.map(pessoaFisicaDto, PessoaFisica.class);
     }
 
+    private static void enfileirar(PessoaFisica pessoaSalva) {
+        Fila fila = Fila.obterInstancia();
+        fila.adicionar(pessoaSalva);
+    }
 }
