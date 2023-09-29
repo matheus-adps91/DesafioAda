@@ -47,13 +47,13 @@ class PessoaFisicaServiceTest {
         merchantCategory = MerchantCategory.valueOf("RAILROAD_FREIGHT");
         uuid = UUID.fromString("55f451d6-5cc3-11ee-8c99-0242ac120002");
 
-        dto.setCpf("12345678901");
+        dto.setCpf("616.767.490-63");
         dto.setNome("teste");
         dto.setEmail("teste@teste.com");
         dto.setUuid(uuid);
         dto.setMerchantCategory(merchantCategory);
 
-        pessoaFisica.setCpf("12345678901");
+        pessoaFisica.setCpf("616.767.490-63");
         pessoaFisica.setNome("teste");
         pessoaFisica.setEmail("teste@teste.com");
         pessoaFisica.setUuid(uuid);
@@ -130,13 +130,13 @@ class PessoaFisicaServiceTest {
         PessoaFisicaDto novoDto = new PessoaFisicaDto();
         novoDto.setNome("novo");
         novoDto.setEmail("novo@teste.com");
-        novoDto.setCpf("98765432109");
+        novoDto.setCpf("213.784.070-75");
         novoDto.setMerchantCategory(merchantCategory);
         novoDto.setUuid(uuid);
         PessoaFisica novaPessoaFisica = new PessoaFisica();
         novaPessoaFisica.setNome("novo");
         novaPessoaFisica.setEmail("novo@teste.com");
-        novaPessoaFisica.setCpf("98765432109");
+        novaPessoaFisica.setCpf("213.784.070-75");
         novaPessoaFisica.setMerchantCategory(merchantCategory);
         novaPessoaFisica.setUuid(uuid);
 

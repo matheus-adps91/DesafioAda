@@ -45,7 +45,7 @@ public class PessoaJuridicaServiceTest {
 
         dto.setCnpj("93.946.517/0001-59");
         dto.setRazaoSocial("teste software ltda");
-        dto.setCpf("12345678901");
+        dto.setCpf("213.784.070-75");
         dto.setNome("teste");
         dto.setEmail("teste@teste.com");
         dto.setUuid(uuid);
@@ -53,7 +53,7 @@ public class PessoaJuridicaServiceTest {
 
         pessoaJuridica.setCnpj("93.946.517/0001-59");
         pessoaJuridica.setRazaoSocial("teste software ltda");
-        pessoaJuridica.setCpf("12345678901");
+        pessoaJuridica.setCpf("213.784.070-75");
         pessoaJuridica.setNome("teste");
         pessoaJuridica.setEmail("teste@teste.com");
         pessoaJuridica.setUuid(uuid);
@@ -134,7 +134,7 @@ public class PessoaJuridicaServiceTest {
         novoDto.setRazaoSocial("nova software house");
         novoDto.setNome("novo");
         novoDto.setEmail("novo@teste.com");
-        novoDto.setCpf("98765432109");
+        novoDto.setCpf("175.560.710-57");
         novoDto.setMerchantCategory(merchantCategory);
         novoDto.setUuid(uuid);
         PessoaJuridica novaPessoaJuridica = new PessoaJuridica();
@@ -142,7 +142,7 @@ public class PessoaJuridicaServiceTest {
         novaPessoaJuridica.setRazaoSocial("nova software house");
         novaPessoaJuridica.setNome("novo");
         novaPessoaJuridica.setEmail("novo@teste.com");
-        novaPessoaJuridica.setCpf("98765432109");
+        novaPessoaJuridica.setCpf("175.560.710-57");
         novaPessoaJuridica.setMerchantCategory(merchantCategory);
         novaPessoaJuridica.setUuid(uuid);
 
