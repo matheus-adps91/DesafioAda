@@ -2,11 +2,15 @@ package com.desafio.ada.prospect.pessoa.fisica;
 
 import com.desafio.ada.prospect.conversores.atributo.MerchantCategoryConverter;
 import com.desafio.ada.prospect.pessoa.enums.MerchantCategory;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import jakarta.validation.Valid;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,10 +22,14 @@ public class PessoaFisicaController {
 
     private final PessoaFisicaService pessoaFisicaService;
     private final ModelMapper mapper;
+    private final QueueMessagingTemplate queueMessagingTemplate;
+    @Value("${aws.queue-name}")
+    private String queueName;
 
-    public PessoaFisicaController(PessoaFisicaService pessoaFisicaService, ModelMapper mapper) {
+    public PessoaFisicaController(PessoaFisicaService pessoaFisicaService, ModelMapper mapper, QueueMessagingTemplate queueMessagingTemplate) {
         this.pessoaFisicaService = pessoaFisicaService;
         this.mapper = mapper;
+        this.queueMessagingTemplate = queueMessagingTemplate;
     }
 
     @PostMapping
@@ -31,6 +39,11 @@ public class PessoaFisicaController {
     {
         final PessoaFisicaDto pessoaFisicaDto = converterParaDto(pessoaFisicaRequest);
         final PessoaFisica pessoaSalva = pessoaFisicaService.cadastrarPessoa(pessoaFisicaDto);
+        Message<PessoaFisica> message = MessageBuilder
+                .withPayload(pessoaSalva)
+                .setHeader("tipoDado", "PessoaFisica")
+                .build();
+        queueMessagingTemplate.send(queueName, message);
         final PessoaFisicaResponse pessoaFisicaResponse = converterParaResponse(pessoaSalva);
         return pessoaFisicaResponse;
     }
