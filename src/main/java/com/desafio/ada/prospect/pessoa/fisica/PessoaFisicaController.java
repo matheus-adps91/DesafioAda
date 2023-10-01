@@ -1,12 +1,12 @@
 package com.desafio.ada.prospect.pessoa.fisica;
 
-import com.desafio.ada.prospect.conversores.atributo.MerchantCategoryConverter;
-import com.desafio.ada.prospect.pessoa.enums.MerchantCategory;
+import com.desafio.ada.prospect.conversores.dto.DtoConversor;
+import com.desafio.ada.prospect.conversores.json.JsonConversor;
+import com.desafio.ada.prospect.conversores.response.ResponseConversor;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import jakarta.validation.Valid;
-import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
@@ -21,30 +21,37 @@ import java.util.UUID;
 public class PessoaFisicaController {
 
     private final PessoaFisicaService pessoaFisicaService;
-    private final ModelMapper mapper;
     private final QueueMessagingTemplate queueMessagingTemplate;
+    private final ResponseConversor responseConversor;
+
     @Value("${aws.queue-name}")
     private String queueName;
 
-    public PessoaFisicaController(PessoaFisicaService pessoaFisicaService, ModelMapper mapper, QueueMessagingTemplate queueMessagingTemplate) {
+    public PessoaFisicaController(
+            PessoaFisicaService pessoaFisicaService,
+            ResponseConversor responseConversor,
+            QueueMessagingTemplate queueMessagingTemplate)
+    {
         this.pessoaFisicaService = pessoaFisicaService;
-        this.mapper = mapper;
+        this.responseConversor = responseConversor;
         this.queueMessagingTemplate = queueMessagingTemplate;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PessoaFisicaResponse cadastrarPessoaFisica(
-            @Valid @RequestBody PessoaFisicaRequest pessoaFisicaRequest)
+            @Valid @RequestBody PessoaFisicaRequest pessoaFisicaRequest) throws JsonProcessingException
     {
-        final PessoaFisicaDto pessoaFisicaDto = converterParaDto(pessoaFisicaRequest);
+        final DtoConversor dtoConversor = new DtoConversor(new ModelMapper());
+        final PessoaFisicaDto pessoaFisicaDto = dtoConversor.converterParaDto(pessoaFisicaRequest);
         final PessoaFisica pessoaSalva = pessoaFisicaService.cadastrarPessoa(pessoaFisicaDto);
-        Message<PessoaFisica> message = MessageBuilder
-                .withPayload(pessoaSalva)
-                .setHeader("tipoDado", "PessoaFisica")
+        final String sPessoaFisicaDto = JsonConversor.converter(pessoaFisicaDto);
+        final Message<String> message = MessageBuilder
+                .withPayload(sPessoaFisicaDto)
+                .setHeader("tipoDado", "PessoaFisicaDto")
                 .build();
         queueMessagingTemplate.send(queueName, message);
-        final PessoaFisicaResponse pessoaFisicaResponse = converterParaResponse(pessoaSalva);
+        final PessoaFisicaResponse pessoaFisicaResponse = responseConversor.converterParaResponse(pessoaSalva);
         return pessoaFisicaResponse;
     }
 
@@ -53,7 +60,7 @@ public class PessoaFisicaController {
     {
         final List<PessoaFisica> pessoasFisicas = pessoaFisicaService.listarPessoasFisicas();
         final List<PessoaFisicaResponse> pessoasFisicaResponse = pessoasFisicas.stream()
-                .map(pessoaFisica -> converterParaResponse(pessoaFisica))
+                .map(pessoaFisica -> responseConversor.converterParaResponse(pessoaFisica))
                 .toList();
         return pessoasFisicaResponse;
     }
@@ -63,7 +70,7 @@ public class PessoaFisicaController {
             @PathVariable UUID uuid)
     {
         final PessoaFisica pessoaFisica = pessoaFisicaService.obterPessoaFisicaPorId(uuid);
-        final PessoaFisicaResponse pessoaFisicaResposta = converterParaResponse(pessoaFisica);
+        final PessoaFisicaResponse pessoaFisicaResposta = responseConversor.converterParaResponse(pessoaFisica);
         return pessoaFisicaResposta;
     }
 
@@ -72,9 +79,10 @@ public class PessoaFisicaController {
             @PathVariable UUID uuid,
             @Valid @RequestBody PessoaFisicaRequest pessoaFisicaRequest)
     {
-        final PessoaFisicaDto pessoaFisicaDto = converterParaDto(pessoaFisicaRequest);
+        final DtoConversor dtoConversor = new DtoConversor(new ModelMapper());
+        final PessoaFisicaDto pessoaFisicaDto = dtoConversor.converterParaDto(pessoaFisicaRequest);
         final PessoaFisica pessoaFisicaAtualizada = pessoaFisicaService.atualizarPessoaFisicaPorId(uuid, pessoaFisicaDto);
-        final PessoaFisicaResponse pessoaFisicaResponse = converterParaResponse(pessoaFisicaAtualizada);
+        final PessoaFisicaResponse pessoaFisicaResponse = responseConversor.converterParaResponse(pessoaFisicaAtualizada);
         return pessoaFisicaResponse;
     }
 
@@ -86,29 +94,8 @@ public class PessoaFisicaController {
         pessoaFisicaService.deletarPessoaFisica(uuid);
     }
 
-    private PessoaFisicaDto converterParaDto(PessoaFisicaRequest pessoaFisicaRequest)
-    {
-        final Converter<String, MerchantCategory> conversor = new MerchantCategoryConverter();
-        final TypeMap<PessoaFisicaRequest, PessoaFisicaDto> mapaPropriedade = this.mapper.getTypeMap(PessoaFisicaRequest.class, PessoaFisicaDto.class);
-        if (mapaPropriedade == null) {
-            TypeMap<PessoaFisicaRequest, PessoaFisicaDto> novoMapaPropriedade = this.mapper.createTypeMap(PessoaFisicaRequest.class, PessoaFisicaDto.class);
-            novoMapaPropriedade.addMappings(
-                    mapper -> mapper
-                            .using(conversor)
-                            .map(PessoaFisicaRequest::getCodigoCategoria, PessoaFisicaDto::setMerchantCategory)
-            );
-        }
-        return mapper.map(pessoaFisicaRequest, PessoaFisicaDto.class);
-    }
 
-    private PessoaFisicaResponse converterParaResponse(PessoaFisica pessoaSalva)
-    {
-        final TypeMap<PessoaFisica, PessoaFisicaResponse> mapaPropriedade = this.mapper.getTypeMap(PessoaFisica.class, PessoaFisicaResponse.class);
-        if (mapaPropriedade == null) {
-            TypeMap<PessoaFisica, PessoaFisicaResponse> propertyMap = this.mapper.createTypeMap(PessoaFisica.class, PessoaFisicaResponse.class);
-            propertyMap.addMapping(PessoaFisica::obterMerchantCategoryNome, PessoaFisicaResponse::setMerchantCategory);
-        }
-        return this.mapper.map(pessoaSalva, PessoaFisicaResponse.class);
-    }
+
+
 
 }

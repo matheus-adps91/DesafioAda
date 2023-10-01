@@ -1,20 +1,15 @@
 package com.desafio.ada.prospect.sqs;
 
-import ch.qos.logback.classic.pattern.MessageConverter;
-import com.desafio.ada.prospect.pessoa.Pessoa;
-import com.desafio.ada.prospect.pessoa.fisica.PessoaFisica;
+import com.desafio.ada.prospect.exceptions.RecursoNaoEncontradoException;
+import com.desafio.ada.prospect.pessoa.fisica.PessoaFisicaDto;
+import com.desafio.ada.prospect.pessoa.juridica.PessoaJuridicaDto;
 import com.desafio.ada.prospect.utilitarios.Constantes;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
-import io.awspring.cloud.messaging.listener.QueueMessageHandler;
-import org.apache.commons.lang3.SerializationUtils;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.Banner;
-import org.springframework.http.HttpStatus;
 
-import org.springframework.messaging.support.MessageBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -22,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/sqs")
 public class SqsController {
 
+    final Logger logger = LoggerFactory.getLogger(SqsController.class);
     @Value("${aws.queue-name}")
     private String queueName;
     private QueueMessagingTemplate queueMessagingTemplate;
@@ -41,15 +37,28 @@ public class SqsController {
     @GetMapping
     public void obterMensagemDoSqs()
     {
-        var mensagemGenerica = queueMessagingTemplate.receive("spring-boot-amazon-sqs");
-        String tipoDado = mensagemGenerica.getHeaders().get("tipoDado", String.class);
-
-        if (tipoDado.equals(Constantes.PESSOA_FISICA)) {
-            Object o = queueMessagingTemplate.getMessageConverter()
-                    .fromMessage(mensagemGenerica, PessoaFisica.class);
-            System.out.println(o);
+        logger.info("Obtendo mensagem do serviço de fila...");
+        var mensagemGenerica = queueMessagingTemplate.receive(queueName);
+        if (mensagemGenerica == null) {
+            logger.info(Constantes.FILA_ATENDIMENTO_VAZIA);
+            throw new RecursoNaoEncontradoException(Constantes.FILA_ATENDIMENTO_VAZIA);
         }
+        final String tipoDado = mensagemGenerica.getHeaders().get( Constantes.TIPO_DADO, String.class);
 
+        if (tipoDado.equals(Constantes.PESSOA_FISICA_DTO)) {
+            final Object oPessoa = queueMessagingTemplate.getMessageConverter()
+                    .fromMessage(mensagemGenerica, PessoaFisicaDto.class);
+            final PessoaFisicaDto pessoaFisicaDto = (PessoaFisicaDto) oPessoa;
+            logger.info("Convertendo mensagem obtida da fila SQS");
+            logger.info(pessoaFisicaDto.toString());
+        }
+        if(tipoDado.equals(Constantes.PESSOA_JURIDICA_DTO)) {
+            final Object oPessoa = queueMessagingTemplate.getMessageConverter()
+                    .fromMessage(mensagemGenerica, PessoaJuridicaDto.class);
+            final PessoaJuridicaDto pessoaJuridicaDto = (PessoaJuridicaDto) oPessoa;
+            logger.info("Convertendo mensagem obtida da fila SQS");
+            logger.info(pessoaJuridicaDto.toString());
+        }
     }
 
 }
