@@ -7,7 +7,6 @@ import com.desafio.ada.prospect.utilitarios.Constantes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
@@ -24,18 +23,23 @@ public class PessoaJuridicaController {
     private final PessoaJuridicaService pessoaJuridicaService;
     private final QueueMessagingTemplate queueMessagingTemplate;
     private final ResponseConversor responseConversor;
-
+    private final JsonConversor jsonConversor;
+    private final DtoConversor dtoConversor;
     @Value("${aws.queue-name}")
     private String queueName;
 
     public PessoaJuridicaController(
             PessoaJuridicaService pessoaJuridicaService,
             QueueMessagingTemplate queueMessagingTemplate,
-            ResponseConversor responseConversor)
+            ResponseConversor responseConversor,
+            JsonConversor jsonConversor,
+            DtoConversor dtoConversor)
     {
         this.pessoaJuridicaService = pessoaJuridicaService;
         this.responseConversor = responseConversor;
         this.queueMessagingTemplate = queueMessagingTemplate;
+        this.jsonConversor = jsonConversor;
+        this.dtoConversor = dtoConversor;
     }
 
     @PostMapping
@@ -44,25 +48,24 @@ public class PessoaJuridicaController {
             @Valid @RequestBody PessoaJuridicaRequest pessoaJuridicaRequest)
             throws JsonProcessingException
     {
-        final DtoConversor dtoConversor = new DtoConversor(new ModelMapper());
-        final PessoaJuridicaDto pessoaJuridicaDto = dtoConversor.converterParaDto(pessoaJuridicaRequest);
-        final PessoaJuridica pessoaSalva = pessoaJuridicaService.cadastrarPessoa(pessoaJuridicaDto);
-        final String sPessoJuridicaDto = JsonConversor.converter(pessoaJuridicaDto);
+        final PessoaJuridicaDto pessoaJuridicaDto = this.dtoConversor.converterParaDto(pessoaJuridicaRequest);
+        final PessoaJuridica pessoaSalva = this.pessoaJuridicaService.cadastrarPessoa(pessoaJuridicaDto);
+        final String sPessoJuridicaDto = this.jsonConversor.converter(pessoaJuridicaDto);
         final Message<String> message = MessageBuilder
                 .withPayload(sPessoJuridicaDto)
                 .setHeader(Constantes.TIPO_DADO, Constantes.PESSOA_JURIDICA_DTO)
                 .build();
-        queueMessagingTemplate.send(queueName, message);
-        final PessoaJuridicaResponse pessoaJuridicaResponse = responseConversor.converterParaResponse(pessoaSalva);
+        this.queueMessagingTemplate.send(queueName, message);
+        final PessoaJuridicaResponse pessoaJuridicaResponse = this.responseConversor.converterParaResponse(pessoaSalva);
         return pessoaJuridicaResponse;
     }
 
     @GetMapping
     public List<PessoaJuridicaResponse> listarPessoasJuridicas()
     {
-        final List<PessoaJuridica> pessoasJuridicas = pessoaJuridicaService.listarPessoasJuridicas();
+        final List<PessoaJuridica> pessoasJuridicas = this.pessoaJuridicaService.listarPessoasJuridicas();
         final List<PessoaJuridicaResponse> pessoasJuridicaResponse = pessoasJuridicas.stream()
-                .map(pessoaJuridica -> responseConversor.converterParaResponse(pessoaJuridica))
+                .map(pessoaJuridica -> this.responseConversor.converterParaResponse(pessoaJuridica))
                 .toList();
         return pessoasJuridicaResponse;
     }
@@ -71,8 +74,8 @@ public class PessoaJuridicaController {
     public PessoaJuridicaResponse obterPessoaJuridicaPorId(
             @PathVariable UUID uuid)
     {
-        final PessoaJuridica pessoaJuridica = pessoaJuridicaService.obterPessoaJuridicaPorId(uuid);
-        final PessoaJuridicaResponse pessoaJuridicaResponse = responseConversor.converterParaResponse(pessoaJuridica);
+        final PessoaJuridica pessoaJuridica = this.pessoaJuridicaService.obterPessoaJuridicaPorId(uuid);
+        final PessoaJuridicaResponse pessoaJuridicaResponse = this.responseConversor.converterParaResponse(pessoaJuridica);
         return pessoaJuridicaResponse;
     }
 
@@ -81,10 +84,9 @@ public class PessoaJuridicaController {
             @PathVariable UUID uuid,
             @Valid @RequestBody PessoaJuridicaRequest pessoaJuridicaRequest)
     {
-        final DtoConversor dtoConversor = new DtoConversor(new ModelMapper());
-        final PessoaJuridicaDto pessoaJuridicaDto = dtoConversor.converterParaDto(pessoaJuridicaRequest);
-        final PessoaJuridica pessoaJuridicaAtualizada = pessoaJuridicaService.atualizarPessoaJuridicaPorId(uuid, pessoaJuridicaDto);
-        final PessoaJuridicaResponse pessoaJuridicaResponse = responseConversor.converterParaResponse(pessoaJuridicaAtualizada);
+        final PessoaJuridicaDto pessoaJuridicaDto = this.dtoConversor.converterParaDto(pessoaJuridicaRequest);
+        final PessoaJuridica pessoaJuridicaAtualizada = this.pessoaJuridicaService.atualizarPessoaJuridicaPorId(uuid, pessoaJuridicaDto);
+        final PessoaJuridicaResponse pessoaJuridicaResponse = this.responseConversor.converterParaResponse(pessoaJuridicaAtualizada);
         return pessoaJuridicaResponse;
     }
 
@@ -93,7 +95,7 @@ public class PessoaJuridicaController {
     public void deletarPessoaJuridica(
             @PathVariable UUID uuid)
     {
-        pessoaJuridicaService.deletarPessoaJuridica(uuid);
+        this.pessoaJuridicaService.deletarPessoaJuridica(uuid);
     }
 
 }

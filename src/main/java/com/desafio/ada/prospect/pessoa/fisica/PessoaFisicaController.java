@@ -3,10 +3,10 @@ package com.desafio.ada.prospect.pessoa.fisica;
 import com.desafio.ada.prospect.conversores.dto.DtoConversor;
 import com.desafio.ada.prospect.conversores.json.JsonConversor;
 import com.desafio.ada.prospect.conversores.response.ResponseConversor;
+import com.desafio.ada.prospect.utilitarios.Constantes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
@@ -23,44 +23,49 @@ public class PessoaFisicaController {
     private final PessoaFisicaService pessoaFisicaService;
     private final QueueMessagingTemplate queueMessagingTemplate;
     private final ResponseConversor responseConversor;
-
+    private final DtoConversor dtoConversor;
+    private final JsonConversor jsonConversor;
     @Value("${aws.queue-name}")
     private String queueName;
 
     public PessoaFisicaController(
             PessoaFisicaService pessoaFisicaService,
             ResponseConversor responseConversor,
-            QueueMessagingTemplate queueMessagingTemplate)
+            QueueMessagingTemplate queueMessagingTemplate,
+            DtoConversor dtoConversor,
+            JsonConversor jsonConversor)
     {
         this.pessoaFisicaService = pessoaFisicaService;
         this.responseConversor = responseConversor;
         this.queueMessagingTemplate = queueMessagingTemplate;
+        this.dtoConversor = dtoConversor;
+        this.jsonConversor = jsonConversor;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PessoaFisicaResponse cadastrarPessoaFisica(
-            @Valid @RequestBody PessoaFisicaRequest pessoaFisicaRequest) throws JsonProcessingException
+            @Valid @RequestBody PessoaFisicaRequest pessoaFisicaRequest)
+            throws JsonProcessingException
     {
-        final DtoConversor dtoConversor = new DtoConversor(new ModelMapper());
-        final PessoaFisicaDto pessoaFisicaDto = dtoConversor.converterParaDto(pessoaFisicaRequest);
-        final PessoaFisica pessoaSalva = pessoaFisicaService.cadastrarPessoa(pessoaFisicaDto);
-        final String sPessoaFisicaDto = JsonConversor.converter(pessoaFisicaDto);
+        final PessoaFisicaDto pessoaFisicaDto = this.dtoConversor.converterParaDto(pessoaFisicaRequest);
+        final PessoaFisica pessoaSalva = this.pessoaFisicaService.cadastrarPessoa(pessoaFisicaDto);
+        final String sPessoaFisicaDto = this.jsonConversor.converter(pessoaFisicaDto);
         final Message<String> message = MessageBuilder
                 .withPayload(sPessoaFisicaDto)
-                .setHeader("tipoDado", "PessoaFisicaDto")
+                .setHeader(Constantes.TIPO_DADO, Constantes.PESSOA_FISICA_DTO)
                 .build();
-        queueMessagingTemplate.send(queueName, message);
-        final PessoaFisicaResponse pessoaFisicaResponse = responseConversor.converterParaResponse(pessoaSalva);
+        this.queueMessagingTemplate.send(queueName, message);
+        final PessoaFisicaResponse pessoaFisicaResponse = this.responseConversor.converterParaResponse(pessoaSalva);
         return pessoaFisicaResponse;
     }
 
     @GetMapping
     public List<PessoaFisicaResponse> listarPessoasFisica()
     {
-        final List<PessoaFisica> pessoasFisicas = pessoaFisicaService.listarPessoasFisicas();
+        final List<PessoaFisica> pessoasFisicas = this.pessoaFisicaService.listarPessoasFisicas();
         final List<PessoaFisicaResponse> pessoasFisicaResponse = pessoasFisicas.stream()
-                .map(pessoaFisica -> responseConversor.converterParaResponse(pessoaFisica))
+                .map(pessoaFisica -> this.responseConversor.converterParaResponse(pessoaFisica))
                 .toList();
         return pessoasFisicaResponse;
     }
@@ -69,8 +74,8 @@ public class PessoaFisicaController {
     public PessoaFisicaResponse obterPessoaFisicaPorId(
             @PathVariable UUID uuid)
     {
-        final PessoaFisica pessoaFisica = pessoaFisicaService.obterPessoaFisicaPorId(uuid);
-        final PessoaFisicaResponse pessoaFisicaResposta = responseConversor.converterParaResponse(pessoaFisica);
+        final PessoaFisica pessoaFisica = this.pessoaFisicaService.obterPessoaFisicaPorId(uuid);
+        final PessoaFisicaResponse pessoaFisicaResposta = this.responseConversor.converterParaResponse(pessoaFisica);
         return pessoaFisicaResposta;
     }
 
@@ -79,10 +84,9 @@ public class PessoaFisicaController {
             @PathVariable UUID uuid,
             @Valid @RequestBody PessoaFisicaRequest pessoaFisicaRequest)
     {
-        final DtoConversor dtoConversor = new DtoConversor(new ModelMapper());
-        final PessoaFisicaDto pessoaFisicaDto = dtoConversor.converterParaDto(pessoaFisicaRequest);
-        final PessoaFisica pessoaFisicaAtualizada = pessoaFisicaService.atualizarPessoaFisicaPorId(uuid, pessoaFisicaDto);
-        final PessoaFisicaResponse pessoaFisicaResponse = responseConversor.converterParaResponse(pessoaFisicaAtualizada);
+        final PessoaFisicaDto pessoaFisicaDto = this.dtoConversor.converterParaDto(pessoaFisicaRequest);
+        final PessoaFisica pessoaFisicaAtualizada = this.pessoaFisicaService.atualizarPessoaFisicaPorId(uuid, pessoaFisicaDto);
+        final PessoaFisicaResponse pessoaFisicaResponse = this.responseConversor.converterParaResponse(pessoaFisicaAtualizada);
         return pessoaFisicaResponse;
     }
 
@@ -91,11 +95,7 @@ public class PessoaFisicaController {
     public void deletarPessoaFisica(
             @PathVariable UUID uuid)
     {
-        pessoaFisicaService.deletarPessoaFisica(uuid);
+        this.pessoaFisicaService.deletarPessoaFisica(uuid);
     }
-
-
-
-
 
 }

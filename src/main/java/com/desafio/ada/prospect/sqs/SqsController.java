@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/sqs")
 public class SqsController {
 
-    final Logger logger = LoggerFactory.getLogger(SqsController.class);
+    private final Logger logger = LoggerFactory.getLogger(SqsController.class);
     @Value("${aws.queue-name}")
     private String queueName;
-    private QueueMessagingTemplate queueMessagingTemplate;
+    private final QueueMessagingTemplate queueMessagingTemplate;
 
     public SqsController(QueueMessagingTemplate messagingTemplate) {
         this.queueMessagingTemplate = messagingTemplate;
@@ -31,7 +31,7 @@ public class SqsController {
     public void enviarMensagemParaSqs(
             @RequestBody Object pessoaRequest)
     {
-        queueMessagingTemplate.convertAndSend(queueName, pessoaRequest);
+        this.queueMessagingTemplate.convertAndSend(queueName, pessoaRequest);
     }
 
     @GetMapping
@@ -46,17 +46,17 @@ public class SqsController {
         final String tipoDado = mensagemGenerica.getHeaders().get( Constantes.TIPO_DADO, String.class);
 
         if (tipoDado.equals(Constantes.PESSOA_FISICA_DTO)) {
+            logger.info("Convertendo mensagem obtida da fila SQS");
             final Object oPessoa = queueMessagingTemplate.getMessageConverter()
                     .fromMessage(mensagemGenerica, PessoaFisicaDto.class);
             final PessoaFisicaDto pessoaFisicaDto = (PessoaFisicaDto) oPessoa;
-            logger.info("Convertendo mensagem obtida da fila SQS");
             logger.info(pessoaFisicaDto.toString());
         }
         if(tipoDado.equals(Constantes.PESSOA_JURIDICA_DTO)) {
+            logger.info("Convertendo mensagem obtida da fila SQS");
             final Object oPessoa = queueMessagingTemplate.getMessageConverter()
                     .fromMessage(mensagemGenerica, PessoaJuridicaDto.class);
             final PessoaJuridicaDto pessoaJuridicaDto = (PessoaJuridicaDto) oPessoa;
-            logger.info("Convertendo mensagem obtida da fila SQS");
             logger.info(pessoaJuridicaDto.toString());
         }
     }

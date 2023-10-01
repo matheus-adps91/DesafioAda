@@ -29,19 +29,19 @@ public class PessoaFisicaService {
             final String msgErro = String.format(Constantes.RECURSO_DUPLICADO, pessoaFisica.getUuid());
             throw new RecursoDuplicadoException(msgErro);
         }
-        final PessoaFisica pessoaSalva = pessoaFisicaRepository.save(pessoaFisica);
+        final PessoaFisica pessoaSalva = this.pessoaFisicaRepository.save(pessoaFisica);
         enfileirar(pessoaSalva);
         return pessoaSalva;
     }
 
 
     public List<PessoaFisica> listarPessoasFisicas() {
-        final List<PessoaFisica> pessoasFisicas = pessoaFisicaRepository.findAll();
+        final List<PessoaFisica> pessoasFisicas = this.pessoaFisicaRepository.findAll();
         return pessoasFisicas;
     }
 
     public PessoaFisica obterPessoaFisicaPorId(UUID uuid) {
-        final PessoaFisica pessoaFisica = pessoaFisicaRepository.findByUuid(uuid)
+        final PessoaFisica pessoaFisica = this.pessoaFisicaRepository.findByUuid(uuid)
             .orElseThrow( () -> {
                     final String msgErro = String.format(Constantes.RECURSO_NAO_ENCONTRADO, "física", uuid);
                     return new RecursoNaoEncontradoException(msgErro);
@@ -67,7 +67,7 @@ public class PessoaFisicaService {
 
     public void deletarPessoaFisica(UUID uuid) {
         final PessoaFisica pessoaFisica = obterPessoaFisicaPorId(uuid);
-        pessoaFisicaRepository.delete(pessoaFisica);
+        this.pessoaFisicaRepository.delete(pessoaFisica);
     }
 
     private PessoaFisica converterParaEntidade(PessoaFisicaDto pessoaFisicaDto) {
