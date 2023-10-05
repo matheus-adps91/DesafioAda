@@ -1,15 +1,13 @@
 package com.desafio.ada.prospect.pessoa.juridica;
 
 import com.desafio.ada.prospect.pessoa.enums.MerchantCategory;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class PessoaJuridicaDto {

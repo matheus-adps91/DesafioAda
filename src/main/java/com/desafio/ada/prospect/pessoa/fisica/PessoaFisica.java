@@ -8,7 +8,6 @@ import lombok.ToString;
 import java.util.UUID;
 
 @ToString
-@AllArgsConstructor
 @Entity
 public class PessoaFisica extends Pessoa  {
 
@@ -17,8 +16,6 @@ public class PessoaFisica extends Pessoa  {
     @Column(name = "id", nullable = false)
     private Long id;
     private UUID uuid;
-
-    public PessoaFisica() { }
 
     public void setId(Long id) {
         this.id = id;
